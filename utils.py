@@ -16,8 +16,8 @@ def get_day_range_unix_time(days_before_today):
     return (start_unix, end_unix)
 
 
-def file_modified_in_last_hour(file_path):
-    last_modified_time = os.stat(file_path).st_mtime
+def file_modified_in_last_hour(file_name):
+    last_modified_time = os.stat(os.getcwd() + '/' + file_name).st_mtime
     now = time.time()
     unix_time_passed = now - last_modified_time
     return unix_time_passed < UNIX_HOUR_REPRESENTATION
