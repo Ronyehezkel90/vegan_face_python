@@ -14,8 +14,6 @@ elif script_name == 'get_posts':
     rest_name = ''
     for idx in range(2, len(sys.argv)):
         rest_name += sys.argv[idx] + ' ' if idx != len(sys.argv) - 1 else sys.argv[idx]
-    # with open('heb_rest') as f:
-    #     rest_name = f.readline()
     rest_posts = db_handler.get_restaurant_posts(rest_name)
     print rest_posts
 else:
