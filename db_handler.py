@@ -110,5 +110,5 @@ class DB_Handler:
             rest_data = self.posts_collection.find({'id': post_id})[0]
             if 'message' in rest_data:
                 posts['posts'].append({'id': post_id, 'text': rest_data['message'][:40]})
-        posts_json = pd.DataFrame(posts['posts']).set_index('id')[:20].to_json()
+        posts_json = pd.DataFrame(posts['posts']).set_index('id')[:10].to_json()
         return posts_json
