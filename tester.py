@@ -1,3 +1,5 @@
+import json
+
 from conf import POSTS_WITHOUT_RANK_QUERY, IRRELEVANT_RANK
 from db_handler import DB_Handler
 from facebook_handler import FacebookHandler
@@ -12,6 +14,7 @@ class Tester(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(Tester, self).__init__(*args, **kwargs)
         self.db_handler = DB_Handler()
+        self.ranker = Ranker(self.db_handler)
 
     def test_get_posts_from_facebook(self):
         fb_handler = FacebookHandler()
@@ -21,6 +24,16 @@ class Tester(unittest.TestCase):
     def test_get_posts_from_mongo(self):
         posts = self.db_handler.get_posts_from_mongo()
         self.assertTrue(posts)
+
+    def test_get_unranked_post_from_mongo(self):
+        post = self.db_handler.get_unranked_post()
+        self.assertTrue(post)
+
+    def test_rank_post_request_test(self):
+        post_as_string = self.db_handler.get_unranked_post()
+        post_as_json = json.loads(post_as_string)
+        result = self.ranker.rank_post_request(post_as_json['post_id'], '0')
+        self.assertTrue(result)
 
     def test_get_posts_with_attr_from_mongo(self):
         posts = self.db_handler.get_posts_from_mongo()
@@ -34,15 +47,14 @@ class Tester(unittest.TestCase):
         self.assertTrue(posts)
 
     def test_rank_posts(self):
-        self.ranker = Ranker()
-        self.ranker.rank_post()
+        self.ranker.rank_post_manually()
 
     def test_build_machine_learning_model(self):
         pre_processor = PreProcessor()
         pre_processor.pre_process_recs()
 
     def test_rank_post_automatically(self):
-        self.ranker = Ranker()
+        self.ranker = Ranker(self.db_handler)
         sign = '?'
         rank = IRRELEVANT_RANK
         posts = self.db_handler.get_posts_from_mongo(POSTS_WITHOUT_RANK_QUERY)

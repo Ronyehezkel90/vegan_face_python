@@ -1,15 +1,19 @@
 import sys
 
 from db_handler import DB_Handler
+from ranker import Ranker
 
 script_name = sys.argv[1]
 db_handler = DB_Handler()
+ranker = Ranker(db_handler)
 
 if script_name == 'get_top_rests':
     top_restaurants_json = db_handler.get_top_ten_json(10)
     print top_restaurants_json
-elif script_name == 'count_recs':
-    print script_name
+elif script_name == 'train_machine':
+    print db_handler.get_unranked_post()
+elif script_name == 'rank_post':
+    print ranker.rank_post_request(sys.argv[2], sys.argv[3])
 elif script_name == 'get_posts':
     rest_name = ''
     for idx in range(2, len(sys.argv)):

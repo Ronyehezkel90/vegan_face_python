@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import pandas as pd
 import json
 
-from conf import BAD_CHARACTERS
+from conf import BAD_CHARACTERS, POSTS_WITHOUT_RANK_QUERY
 
 
 class DB_Handler:
@@ -24,7 +24,15 @@ class DB_Handler:
                 self.posts_collection.insert_one(post)
 
     def get_posts_from_mongo(self, query={}):
-        return list(self.posts_collection.find(query))
+        return list(self.posts_collection.findOne(query))
+
+    def get_unranked_post(self):
+        post = {}
+        posts_iterator = self.posts_collection.find(POSTS_WITHOUT_RANK_QUERY)
+        while 'message' not in post:
+            post = posts_iterator.next()
+        json_response = json.dumps({'post_id': post['id'], 'message': post['message']})
+        return json_response
 
     def get_related_posts(self):
         all_related_posts_lists = [res['recs'].keys() for res in self.restaurants_data_collection.find()]
