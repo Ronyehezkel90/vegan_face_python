@@ -31,7 +31,7 @@ class DB_Handler:
         posts_iterator = self.posts_collection.find(POSTS_WITHOUT_RANK_QUERY)
         while 'message' not in post:
             post = posts_iterator.next()
-        json_response = json.dumps({'post_id': post['id'], 'message': post['message']})
+        json_response = json.dumps({'post_id': post['id'], 'message': post['message'][:500]})
         return json_response
 
     def get_related_posts(self):
