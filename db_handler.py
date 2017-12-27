@@ -120,3 +120,19 @@ class DB_Handler:
                 posts['posts'].append({'id': post_id, 'text': rest_data['message'][:40]})
         posts_json = pd.DataFrame(posts['posts']).set_index('id')[:10].to_json()
         return posts_json
+
+    def get_restaurant_images(self, rest_name):
+        posts_ids = list(self.restaurants_data_collection.find({'name': rest_name}))[0]['recs'].keys()
+        posts = {'urls': []}
+        for post_id in posts_ids:
+            rest_data = self.posts_collection.find({'id': post_id})[0]
+            if 'attachments' in rest_data:
+                for attachment in rest_data['attachments']['data']:
+                    if 'media' in attachment and 'image' in attachment['media']:
+                        posts['urls'].append({'url': attachment['media']['image']['src'], 'id': post_id})
+                    elif 'subattachments' in attachment:
+                        for subattachment in attachment['subattachments']['data']:
+                            if 'media' in subattachment and 'image' in subattachment['media']:
+                                posts['urls'].append({'url': subattachment['media']['image']['src'], 'id': post_id})
+        urls_json = pd.DataFrame(posts['urls'])[:20].to_json()
+        return urls_json

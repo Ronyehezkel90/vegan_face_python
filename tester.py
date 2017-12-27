@@ -86,6 +86,10 @@ class Tester(unittest.TestCase):
         top_ten_json = self.db_handler.get_top_ten_json(10)
         self.assertTrue(top_ten_json)
 
+    def test_get_rest_images_test(self):
+        images = self.db_handler.get_restaurant_images('FOUR ONE SIX')
+        self.assertTrue(images)
+
     def test_restaurant_name_in_message(self):
         separator = '******************************'
         related_posts = self.db_handler.get_related_posts()
