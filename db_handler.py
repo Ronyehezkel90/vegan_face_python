@@ -104,24 +104,24 @@ class DB_Handler:
         df.to_excel('restaurants.xlsx')
         print df
 
-    def get_top_ten_json(self, count):
+    def get_top_ten_json(self, count_from, count_to):
         top_restaurants_data = list(self.restaurants_data_collection.find())
         data = [(res['name'], len(res['recs'])) for res in top_restaurants_data]
         df = pd.DataFrame(data, columns=['name', 'recs']).sort_values('recs', ascending=False).set_index('name')
-        top_ten_json = df[:count].to_json()
+        top_ten_json = df[count_from:count_to].to_json()
         return top_ten_json
 
-    def get_restaurant_posts(self, rest_name):
+    def get_restaurant_posts(self, rest_name, count_from, count_to):
         posts_ids = list(self.restaurants_data_collection.find({'name': rest_name}))[0]['recs'].keys()
         posts = {'posts': []}
         for post_id in posts_ids:
             rest_data = self.posts_collection.find({'id': post_id})[0]
             if 'message' in rest_data:
                 posts['posts'].append({'id': post_id, 'text': rest_data['message'][:40]})
-        posts_json = pd.DataFrame(posts['posts']).set_index('id')[:10].to_json()
+        posts_json = pd.DataFrame(posts['posts']).set_index('id')[count_from:count_to].to_json()
         return posts_json
 
-    def get_restaurant_images(self, rest_name):
+    def get_restaurant_images(self, rest_name, count_from, count_to):
         posts_ids = list(self.restaurants_data_collection.find({'name': rest_name}))[0]['recs'].keys()
         posts = {'urls': []}
         for post_id in posts_ids:
@@ -134,5 +134,5 @@ class DB_Handler:
                         for subattachment in attachment['subattachments']['data']:
                             if 'media' in subattachment and 'image' in subattachment['media']:
                                 posts['urls'].append({'url': subattachment['media']['image']['src'], 'id': post_id})
-        urls_json = pd.DataFrame(posts['urls'])[:20].to_json()
+        urls_json = pd.DataFrame(posts['urls'])[count_from:count_to].to_json()
         return urls_json
