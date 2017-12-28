@@ -106,11 +106,14 @@ class Tester(unittest.TestCase):
     def test_update_place_info(self):
         fb_handler = FacebookHandler()
         rest_ids = [rest for rest in list(self.db_handler.restaurants_data_collection.find({}))]
+        i = 0
         for rest in rest_ids:
             try:
                 rest_data = fb_handler.graph.get_object(rest['id'] + "?fields=about,hours")
                 if 'about' in rest_data:
                     self.db_handler.restaurants_data_collection.update_one({'id': rest['id']}, {"$set": rest_data})
+                    i += 1
+                    print str(i) + '. ' + rest['name']
             except Exception as e:
                 ron = 2
         ron = 2
