@@ -24,7 +24,7 @@ class DB_Handler:
                 self.posts_collection.insert_one(post)
 
     def get_posts_from_mongo(self, query={}):
-        return list(self.posts_collection.findOne(query))
+        return list(self.posts_collection.find(query))
 
     def get_unranked_post(self):
         post = {}
@@ -67,8 +67,6 @@ class DB_Handler:
         counter = []
         counter_two = []
         for post in posts:
-            if '1531688776921979' in post[u'id']:
-                ron = 2
             mentioned_restaurants = [restaurant for restaurant in self.all_restaurants if
                                      restaurant in post['message']] if 'message' in post else []
             try:

@@ -5,7 +5,7 @@ TOKEN_FILE_NAME = 'token_file.txt'
 UNIX_HOUR_REPRESENTATION = 3600
 POST_FIELDS_LIST = 'created_time, message, place, attachments'
 BASE_URL = '619669744790558/?fields=feed.limit({})'.format(str(POSTS_COUNT))
-PLACE_URL = 'search?type=place&q={}&fields=name,id,location'
+PLACE_URL = 'search?type=place&q={}&fields=name,id,location,hours,about'
 DAY_RANGE = '.since({}).until({})'
 GOOD_RANK = 'good'
 BAD_RANK = 'bad'
@@ -19,5 +19,4 @@ RESTAURANT_DATA = {
 }
 CHARS_TO_REMOVE = '[a-zA-z0-9,.~!-@#$%^&*(){}[;:<>\'"?/]'
 BAD_CHARACTERS = ['?']
-'1506384001'
 MEMORY_LIMIT = 20000

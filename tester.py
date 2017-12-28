@@ -103,6 +103,15 @@ class Tester(unittest.TestCase):
         unixtime_range = get_day_range_unix_time(2)
         self.assertTrue(unixtime_range)
 
+    def test_update_place_info(self):
+        fb_handler = FacebookHandler()
+        rest_ids = [rest['id'] for rest in list(self.db_handler.restaurants_data_collection.find({}))]
+        for id in rest_ids:
+            rest_data = fb_handler.graph.get_object(id + "?fields=about,hours")
+            if 'about' in rest_data:
+                self.db_handler.restaurants_data_collection.update_one({'id': id}, {"$set": rest_data})
+        ron = 2
+
 
 if __name__ == '__main__':
     unittest.main()
