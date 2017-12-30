@@ -3,10 +3,12 @@ import pandas as pd
 import json
 
 from conf import BAD_CHARACTERS, POSTS_WITHOUT_RANK_QUERY
+from facebook_handler import FacebookHandler
 
 
 class DB_Handler:
     def __init__(self):
+        self.fb_handler = FacebookHandler()
         client = MongoClient('localhost', 27017)
         db = client.veganDB
         self.posts_collection = db.posts
@@ -59,6 +61,8 @@ class DB_Handler:
     def add_place_recommendation(self, post):
         place_name = post['place']['name']
         place_dict = post['place']
+        place_data = self.fb_handler.graph.get_object(post['place']['id'] + "?fields=about,hours")
+        place_dict.update(place_data)
         self.add_new_place(post, place_name, place_dict) if place_name not in self.all_restaurants \
             else self.add_existing_place(post, place_name)
 
@@ -102,12 +106,20 @@ class DB_Handler:
         df.to_excel('restaurants.xlsx')
         print df
 
-    def get_top_ten_json(self, count_from, count_to):
+    def get_top_restaurants_as_json(self, count_from, count_to):
         top_restaurants_data = list(self.restaurants_data_collection.find())
         data = [(res['name'], len(res['recs'])) for res in top_restaurants_data]
         df = pd.DataFrame(data, columns=['name', 'recs']).sort_values('recs', ascending=False).set_index('name')
         top_ten_json = df[count_from:count_to].to_json()
         return top_ten_json
+
+    def get_restaurant_data_by_field_as_json(self, rest_name, rest_field):
+        rest_data_as_json = list(self.restaurants_data_collection.find({'name': rest_name}))[0]
+        data_field = rest_data_as_json[rest_field] if rest_field in rest_data_as_json else 'NO FIELD'
+        if rest_field == 'about':
+            data_field = {'about': data_field}
+        posts_json = json.dumps(data_field)
+        return posts_json
 
     def get_restaurant_posts(self, rest_name, count_from, count_to):
         posts_ids = list(self.restaurants_data_collection.find({'name': rest_name}))[0]['recs'].keys()

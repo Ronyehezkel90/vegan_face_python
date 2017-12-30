@@ -83,7 +83,7 @@ class Tester(unittest.TestCase):
         self.db_handler.print_restaurants_data()
 
     def test_get_top_ten_json(self):
-        top_ten_json = self.db_handler.get_top_ten_json(10)
+        top_ten_json = self.db_handler.get_top_restaurants_as_json(0, 10)
         self.assertTrue(top_ten_json)
 
     def test_get_rest_images_test(self):
@@ -117,6 +117,21 @@ class Tester(unittest.TestCase):
             except Exception as e:
                 ron = 2
         ron = 2
+
+    def test_add_place(self):
+        posts = [place_post for place_post in self.db_handler.get_posts_from_mongo() if 'place' in place_post]
+        i = 0
+        self.db_handler.add_place_recommendation(posts[i])
+
+    def test_get_restaurnats_data(self):
+        str_rest = self.db_handler.get_top_restaurants_as_json(0, 1)
+        json_rest = json.loads(str_rest)
+        rest_name = json_rest['recs'].keys()[0]
+        fields = [u'about', u'name', u'location', u'recs', u'id']
+        all_data = []
+        for field in fields:
+            all_data.append(self.db_handler.get_restaurant_data_by_field_as_json(rest_name, field))
+        self.assertTrue(all_data)
 
 
 if __name__ == '__main__':
