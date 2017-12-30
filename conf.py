@@ -20,3 +20,4 @@ RESTAURANT_DATA = {
 CHARS_TO_REMOVE = '[a-zA-z0-9,.~!-@#$%^&*(){}[;:<>\'"?/]'
 BAD_CHARACTERS = ['?']
 MEMORY_LIMIT = 20000
+POSTS_PER_REQUEST = 3

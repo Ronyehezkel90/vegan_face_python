@@ -1,5 +1,6 @@
 import sys
 
+from conf import POSTS_PER_REQUEST
 from db_handler import DB_Handler
 from ranker import Ranker
 
@@ -25,9 +26,9 @@ elif script_name == 'get_rest_data':
     print db_handler.get_restaurant_data_by_field_as_json(get_rest_name(3), sys.argv[2])
 elif script_name == 'get_posts':
     page = sys.argv[2]
-    count = int(page) * 10
+    count = int(page) * POSTS_PER_REQUEST
     rest_name = get_rest_name(3)
-    rest_posts = db_handler.get_restaurant_posts(rest_name, count, count + 10)
+    rest_posts = db_handler.get_restaurant_posts(rest_name, count, count + POSTS_PER_REQUEST)
     print rest_posts
 elif script_name == 'get_images':
     page = sys.argv[2]
