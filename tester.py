@@ -5,6 +5,7 @@ from db_handler import DB_Handler
 from facebook_handler import FacebookHandler
 import unittest
 
+from filter import Filter
 from pre_processor import PreProcessor
 from utils import get_day_range_unix_time
 from ranker import Ranker
@@ -132,6 +133,13 @@ class Tester(unittest.TestCase):
         for field in fields:
             all_data.append(self.db_handler.get_restaurant_data_by_field_as_json(rest_name, field))
         self.assertTrue(all_data)
+
+    def test_filter_posts_by_prop(self):
+        with open('heb_word') as f:
+            property = f.readline()
+        f = Filter(self.db_handler)
+        filtered_posts = f.filter_rests_by_property(property)
+        self.assertTrue(filtered_posts)
 
 
 if __name__ == '__main__':
