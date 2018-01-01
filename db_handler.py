@@ -1,8 +1,11 @@
+import re
+
 from pymongo import MongoClient
 import pandas as pd
 import json
 
-from conf import BAD_CHARACTERS, POSTS_WITHOUT_RANK_QUERY
+from conf import BAD_CHARACTERS, POSTS_WITHOUT_RANK_QUERY, ATTACHMENTS, DATA, DESC_TAG, NAME, NO_TAG_IN_POST, \
+    CHARS_TO_REMOVE
 from facebook_handler import FacebookHandler
 
 
@@ -20,10 +23,13 @@ class DB_Handler:
     def insert_posts_to_mongo(self, posts):
         all_posts = list(self.posts_collection.find())
         all_posts_ids = [post['id'] for post in all_posts]
+        added_posts = []
         for post in posts:
             if post['id'] not in all_posts_ids and 'message' in post and all(
                             char not in post['message'] for char in BAD_CHARACTERS):
                 self.posts_collection.insert_one(post)
+                added_posts.append(post)
+        return added_posts
 
     def get_posts_from_mongo(self, query={}):
         return list(self.posts_collection.find(query))
@@ -61,28 +67,67 @@ class DB_Handler:
     def add_place_recommendation(self, post):
         place_name = post['place']['name']
         place_dict = post['place']
-        place_data = self.fb_handler.graph.get_object(post['place']['id'] + "?fields=about,hours")
-        place_dict.update(place_data)
-        self.add_new_place(post, place_name, place_dict) if place_name not in self.all_restaurants \
-            else self.add_existing_place(post, place_name)
+        if place_name not in self.all_restaurants:
+            try:
+                place_data = self.fb_handler.graph.get_object(post['place']['id'] + "?fields=about,hours")
+                place_dict.update(place_data)
+            except Exception as e:
+                print place_dict['name'] + ' -- >' + e.message
+            self.add_new_place(post, place_name, place_dict)
+        else:
+            self.add_existing_place(post, place_name)
+
+    def get_restaurant_tag_in_post(self, post):
+        if ATTACHMENTS in post and DATA in post[ATTACHMENTS] and DESC_TAG in post[ATTACHMENTS][DATA][0] and \
+                        NAME in post[ATTACHMENTS][DATA][0][DESC_TAG][0]:
+            return post[ATTACHMENTS][DATA][0][DESC_TAG][0][NAME]
+        else:
+            return NO_TAG_IN_POST
+
+    def remove_posts(self):
+        c = 0
+        with open('irrelevant_words') as f:
+            words = f.readlines()
+            words = [w.decode('utf-8').replace('\n', '') for w in words]
+        for p in self.get_posts_from_mongo():
+            delet_post = False
+            if 'message' in p:
+                for word in words:
+                    if word in p['message']:
+                        delet_post = True
+            if delet_post:
+                # print'*****************************************************'
+                # print p['message']
+                c += 1
+                self.posts_collection.delete_one({'id': p['id']})
+        print c
+
+    def update_restaurants_test(self, posts):
+        counter = 0
+        all_rests = [x for x in list(self.restaurants_data_collection.find()) if 'synonyms' in x]
+        for post in posts:
+            for rest in all_rests:
+                for s in rest['synonyms']:
+                    if 'message' in post:
+                        clear_post = re.sub(CHARS_TO_REMOVE, ' ', post['message'])
+                        if s + ' ' in clear_post and 'place' not in post:
+                            place_name = self.get_restaurant_tag_in_post(post)
+                            if place_name == NO_TAG_IN_POST:
+                                counter += 1
+                                print s + ' -- > ' + rest['name']
+                                print post['message']
+                                print '***************************************************'
+        print counter
 
     def update_restaurants(self, posts):
         tagged_posts = []
-        counter = []
-        counter_two = []
         for post in posts:
-            mentioned_restaurants = [restaurant for restaurant in self.all_restaurants if
-                                     restaurant in post['message']] if 'message' in post else []
-            try:
-                place_name = post[u'attachments'][u'data'][0][u'description_tags'][0][u'name']
+            place_name = self.get_restaurant_tag_in_post(post)
+            if place_name != NO_TAG_IN_POST:
                 tagged_posts.append((place_name, post))
-            except KeyError:
+            else:
                 if 'place' in post:
                     self.add_place_recommendation(post)
-                elif len(mentioned_restaurants) == 1:
-                    counter.append((post, mentioned_restaurants))
-                elif len(mentioned_restaurants) > 1:
-                    counter_two.append((post, mentioned_restaurants))
         for (place_name, post) in tagged_posts:
             if place_name in self.all_restaurants:
                 self.add_existing_place(post, place_name)
@@ -90,14 +135,6 @@ class DB_Handler:
     def count_recs(self):
         restaurants = list(self.restaurants_data_collection.find())
         return sum([len(x['recs']) for x in restaurants])
-
-    def clear_restaurants(self):
-        self.restaurants_collection.update_one({'_id': self.restaurants_doc_id_obj},
-                                               {"$set": {'restaurants_names': []}})
-        self.restaurants_data_collection.remove()
-
-    def remove_post_by_id(self, p_id):
-        self.posts_collection.remove({'id': p_id})
 
     def print_restaurants_data(self):
         all_restaurants_data = list(self.restaurants_data_collection.find())
@@ -146,3 +183,17 @@ class DB_Handler:
                                 posts['urls'].append({'url': subattachment['media']['image']['src'], 'id': post_id})
         urls_json = pd.DataFrame(posts['urls'])[count_from:count_to].to_json()
         return urls_json
+
+    def set_rests_synonym(self):
+        rests = json.loads(self.get_top_restaurants_as_json(0, 100))['recs'].keys()
+        for idx, rest_name in enumerate(rests):
+            print str(idx) + '. ' + rest_name
+            rest = list(self.restaurants_data_collection.find({'name': rest_name}))[0]
+            if 'synonyms' not in rest:
+                print rest['name'] + '\n*****************'
+                user_input = raw_input()
+                synonyms = user_input.split(' ') if user_input else []
+                synonyms = [synonym.replace('-', ' ') for synonym in synonyms]
+                if synonyms:
+                    self.restaurants_data_collection.update_one({'_id': rest['_id']},
+                                                                {"$set": {'synonyms': synonyms}})

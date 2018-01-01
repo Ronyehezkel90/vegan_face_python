@@ -38,8 +38,8 @@ class Tester(unittest.TestCase):
 
     def test_get_posts_with_attr_from_mongo(self):
         posts = self.db_handler.get_posts_from_mongo()
-        # chosen_posts = [x for x in posts if 'message' in x and '?' in x['message']]
-        for post in posts:
+        chosen_posts = [x for x in posts if '619669744790558_1580944595329730' in x['id']]
+        for post in chosen_posts:
             pic = 'yes' if ('attachments' in post and post[u'attachments'][u'data'][0][u'media'][u'image']) else 'no'
             place = 'yes' if 'place' in post else 'no'
             print 'picture: ' + pic + ' - place: ' + place
@@ -66,16 +66,13 @@ class Tester(unittest.TestCase):
     def test_update_restaurants(self):
         self.db_handler.update_restaurants(self.db_handler.get_posts_from_mongo())
 
-    def test_clear_restaurants(self):
-        self.db_handler.clear_restaurants()
+    def test_update_restaurants_test(self):
+        self.db_handler.update_restaurants_test(self.db_handler.get_posts_from_mongo())
 
     def test_count_recommendations(self):
         total_recommendations = self.db_handler.count_recs()
         self.assertTrue(total_recommendations)
         return total_recommendations
-
-    def test_remove_post_by_id(self):
-        self.db_handler.remove_post_by_id('619669744790558_1496029353821255')
 
     def test_get_unrelated_posts(self):
         self.db_handler.get_related_posts()
@@ -138,8 +135,14 @@ class Tester(unittest.TestCase):
         with open('heb_word') as f:
             property = f.readline()
         f = Filter(self.db_handler)
-        filtered_posts = f.filter_rests_by_property(property)
+        filtered_posts = f.filter_rests_by_property(property, 0, 100)
         self.assertTrue(filtered_posts)
+
+    def test_remove_posts_with_word(self):
+        self.db_handler.remove_posts()
+
+    def test_set_synonyms(self):
+        self.db_handler.set_rests_synonym()
 
 
 if __name__ == '__main__':

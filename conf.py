@@ -17,7 +17,14 @@ RESTAURANT_DATA = {
     'dis_recs': [],
     'synonyms': []
 }
-CHARS_TO_REMOVE = '[a-zA-z0-9,.~!-@#$%^&*(){}[;:<>\'"?/]'
+CHARS_TO_REMOVE = '[,.~!-@#$%^&*(){}[;:<>\'"?/]'
+ENGLISH_CHARS = '[a-zA-z0-9]'
 BAD_CHARACTERS = ['?']
 MEMORY_LIMIT = 20000
 POSTS_PER_REQUEST = 3
+
+ATTACHMENTS = 'attachments'
+DATA = 'data'
+DESC_TAG = 'description_tags'
+NAME = 'name'
+NO_TAG_IN_POST = 'no_tag_in_post'
