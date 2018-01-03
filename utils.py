@@ -22,3 +22,9 @@ def file_modified_in_last_hour(file_name):
     now = time.time()
     unix_time_passed = now - last_modified_time
     return unix_time_passed < UNIX_HOUR_REPRESENTATION
+
+
+def get_hebrew_word_from_file():
+    with open('heb_word') as f:
+        word = f.readline().decode('utf-8')
+    return word

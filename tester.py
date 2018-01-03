@@ -1,5 +1,7 @@
 import json
 
+import pandas as pd
+
 from conf import POSTS_WITHOUT_RANK_QUERY, IRRELEVANT_RANK
 from db_handler import DB_Handler
 from facebook_handler import FacebookHandler
@@ -7,7 +9,7 @@ import unittest
 
 from filter import Filter
 from pre_processor import PreProcessor
-from utils import get_day_range_unix_time
+from utils import get_day_range_unix_time, get_hebrew_word_from_file
 from ranker import Ranker
 
 
@@ -67,7 +69,7 @@ class Tester(unittest.TestCase):
         self.db_handler.update_restaurants(self.db_handler.get_posts_from_mongo())
 
     def test_update_restaurants_test(self):
-        self.db_handler.update_restaurants_test(self.db_handler.get_posts_from_mongo())
+        self.db_handler.get_rest_from_post_message(self.db_handler.get_posts_from_mongo())
 
     def test_count_recommendations(self):
         total_recommendations = self.db_handler.count_recs()
@@ -122,14 +124,10 @@ class Tester(unittest.TestCase):
         self.db_handler.add_place_recommendation(posts[i])
 
     def test_get_restaurnats_data(self):
-        str_rest = self.db_handler.get_top_restaurants_as_json(0, 1)
-        json_rest = json.loads(str_rest)
-        rest_name = json_rest['recs'].keys()[0]
-        fields = [u'about', u'name', u'location', u'recs', u'id']
-        all_data = []
-        for field in fields:
-            all_data.append(self.db_handler.get_restaurant_data_by_field_as_json(rest_name, field))
-        self.assertTrue(all_data)
+        rest_name = get_hebrew_word_from_file()
+        all_rests = list(self.db_handler.restaurants_data_collection.find())
+        restaurant = [rest for rest in all_rests if rest_name in rest['name']][0]
+        self.assertTrue(restaurant)
 
     def test_filter_posts_by_prop(self):
         with open('heb_word') as f:
@@ -139,10 +137,17 @@ class Tester(unittest.TestCase):
         self.assertTrue(filtered_posts)
 
     def test_remove_posts_with_word(self):
-        self.db_handler.remove_posts()
+        self.db_handler.get_irrelevant_posts()
 
     def test_set_synonyms(self):
         self.db_handler.set_rests_synonym()
+
+    def test_remove_all_recs(self):
+        self.db_handler.restaurants_data_collection.update_many({},
+                                                                {"$set": {'recs': {}}})
+
+    def test_build_weekly(self):
+        self.db_handler.build_weekly_rank()
 
 
 if __name__ == '__main__':

@@ -15,7 +15,7 @@ class PreProcessor:
     def __init__(self):
         self.data_handler = DB_Handler()
         self.restaurnts_words = re.sub(CHARS_TO_REMOVE, ' ',
-                                       ' '.join(self.data_handler.all_restaurants).encode('utf-8')).split()
+                                       ' '.join(self.data_handler.all_restaurants_names).encode('utf-8')).split()
         with open('heb_stopwords.txt', 'r') as f:
             stopwords_list = [line.strip() for line in f]
             self.stopwords = set(stopwords_list)
