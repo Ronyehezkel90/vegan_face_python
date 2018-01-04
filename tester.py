@@ -21,7 +21,7 @@ class Tester(unittest.TestCase):
 
     def test_get_posts_from_facebook(self):
         fb_handler = FacebookHandler()
-        posts_from_facebook = fb_handler.get_posts_from_facebook(2)
+        posts_from_facebook = fb_handler.get_posts_from_facebook(10)
         self.assertTrue(posts_from_facebook)
 
     def test_get_posts_from_mongo(self):
@@ -148,6 +148,11 @@ class Tester(unittest.TestCase):
 
     def test_build_weekly(self):
         self.db_handler.build_weekly_rank()
+
+    def test_log_file_write(self):
+        for i in range(0, 10):
+            with open('log.txt', 'a') as the_file:
+                the_file.write(str(i) + '\n')
 
 
 if __name__ == '__main__':

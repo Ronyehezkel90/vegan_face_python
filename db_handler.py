@@ -23,13 +23,13 @@ class DB_Handler:
 
     def insert_posts_to_mongo(self, posts):
         all_posts = list(self.posts_collection.find())
-        irrelevant_posts_ids = self.get_irrelevant_posts(all_posts)
-        all_posts = [post for post in all_posts if post['id'] not in irrelevant_posts_ids]
+        posts = [post for post in posts if post['id'] not in self.get_irrelevant_posts(posts)]
         all_posts_ids = [post['id'] for post in all_posts]
         added_posts = []
         for post in posts:
-            if post['id'] not in all_posts_ids and 'message' in post and all(
-                            char not in post['message'] for char in BAD_CHARACTERS):
+            if post['id'] in all_posts_ids:
+                self.posts_collection.update_one({'id': post['id']}, {"$set": {'reactions': post['reactions']}})
+            elif 'message' in post and all(char not in post['message'] for char in BAD_CHARACTERS):
                 self.posts_collection.insert_one(post)
                 added_posts.append(post)
         return added_posts
@@ -44,7 +44,7 @@ class DB_Handler:
             if 'message' in p:
                 for word in words:
                     if word in p['message']:
-                        delet_post = True
+                        irrelevant_post = True
             if irrelevant_post:
                 irrelevant_posts.append(p['id'])
         return irrelevant_posts
