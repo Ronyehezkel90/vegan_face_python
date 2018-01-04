@@ -164,6 +164,8 @@ class DB_Handler:
         posts_ids = list(self.restaurants_data_collection.find({'name': rest_name}))[0]['recs'].keys()
         posts = {'posts': []}
         for post_id in posts_ids:
+            if posts['posts'] > count_to:
+                break
             rest_data = self.posts_collection.find({'id': post_id})[0]
             if 'message' in rest_data:
                 posts['posts'].append({'id': post_id, 'text': rest_data['message'][:100]})
@@ -174,6 +176,8 @@ class DB_Handler:
         posts_ids = list(self.restaurants_data_collection.find({'name': rest_name}))[0]['recs'].keys()
         posts = {'urls': []}
         for post_id in posts_ids:
+            if len(posts['urls']) > count_to:
+                break
             rest_data = self.posts_collection.find({'id': post_id})[0]
             if 'attachments' in rest_data:
                 for attachment in rest_data['attachments']['data']:
@@ -201,7 +205,7 @@ class DB_Handler:
                                                                 {"$set": {'synonyms': synonyms}})
 
     def build_weekly_rank(self):
-        #todo add weekly rank
+        # todo add weekly rank
         top_restaurants_data = list(self.restaurants_data_collection.find())
         data = [(res['id'], res['recs']) for res in top_restaurants_data]
         # for rec in data.values():

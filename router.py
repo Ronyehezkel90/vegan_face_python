@@ -39,7 +39,7 @@ elif script_name == 'get_images':
     page = sys.argv[2]
     count = int(page) * 20
     rest_name = get_full_last_arg(3)
-    rest_posts = db_handler.get_restaurant_images(rest_name, count, count + 10)
+    rest_posts = db_handler.get_restaurant_images(rest_name, count, count + 20)
     print rest_posts
 elif script_name == 'train_machine':
     print db_handler.get_unranked_post()
