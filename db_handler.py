@@ -20,7 +20,6 @@ class DB_Handler:
         self.posts_collection = self.db.posts
         self.restaurants_collection = self.db.restaurants
         self.restaurants_data_collection = self.db.restaurants_data
-        self.all_restaurants = list(self.restaurants_data_collection.find())
         if not list(self.restaurants_collection.find()):
             self.restaurants_collection.insert_one({'restaurants_names': []})
         self.restaurants_doc_id_obj = list(self.restaurants_collection.find())[0]['_id']
@@ -81,7 +80,8 @@ class DB_Handler:
         self.restaurants_data_collection.insert_one(place_dict)
 
     def add_existing_place(self, post, place_name):
-        recs_posts_ids = [rest['recs'] for rest in self.all_restaurants if rest['name'] == place_name][0]
+        all_restaurants = list(self.restaurants_data_collection.find())
+        recs_posts_ids = [rest['recs'] for rest in all_restaurants if rest['name'] == place_name][0]
         if post['id'] not in recs_posts_ids:
             recs_posts_ids[post['id']] = 0
             self.restaurants_data_collection.update_one({'name': place_name},
