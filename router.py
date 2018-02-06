@@ -1,6 +1,6 @@
 import sys
 
-from conf import POSTS_PER_REQUEST
+from conf import POSTS_PER_REQUEST, TOP_RESTS_AMOUNT
 from db_handler import DB_Handler
 from filter import Filter
 from ranker import Ranker
@@ -20,11 +20,11 @@ filterer = Filter(db_handler)
 if script_name == 'get_top_rests':
     page = sys.argv[2]
     filter_by_prop = get_full_last_arg(3)
-    count = int(page) * 10
+    count = int(page) * TOP_RESTS_AMOUNT
     if filter_by_prop == 'all':
-        top_restaurants_json = db_handler.get_top_restaurants_as_json(count, count + 10)
+        top_restaurants_json = db_handler.get_top_restaurants_as_json(count, count + TOP_RESTS_AMOUNT)
     else:
-        top_restaurants_json = filterer.filter_rests_by_property(filter_by_prop, count, count + 10)
+        top_restaurants_json = filterer.filter_rests_by_property(filter_by_prop, count, count + TOP_RESTS_AMOUNT)
     print top_restaurants_json
 elif script_name == 'get_rest_data':
     rest_name = get_full_last_arg(3)

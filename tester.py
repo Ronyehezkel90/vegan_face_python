@@ -83,7 +83,7 @@ class Tester(unittest.TestCase):
         self.db_handler.print_restaurants_data()
 
     def test_get_top_ten_json(self):
-        top_ten_json = self.db_handler.get_top_restaurants_as_json(0, 10)
+        top_ten_json = self.db_handler.get_top_restaurants_as_json(0, 100)
         self.assertTrue(top_ten_json)
 
     def test_get_rest_images_test(self):
@@ -120,7 +120,7 @@ class Tester(unittest.TestCase):
 
     def test_add_place(self):
         posts = [place_post for place_post in self.db_handler.get_posts_from_mongo() if 'place' in place_post]
-        i = 0
+        i = 40
         self.db_handler.add_place_recommendation(posts[i])
 
     def test_get_restaurnats_data(self):
@@ -146,13 +146,22 @@ class Tester(unittest.TestCase):
         self.db_handler.restaurants_data_collection.update_many({},
                                                                 {"$set": {'recs': {}}})
 
-    def test_build_weekly(self):
-        self.db_handler.build_weekly_rank()
-
     def test_log_file_write(self):
         for i in range(0, 10):
             with open('log.txt', 'a') as the_file:
                 the_file.write(str(i) + '\n')
+
+    def test_recognize_new_post_with_topic(self):
+        fb_handler = FacebookHandler()
+        filterer = Filter(self.db_handler)
+        posts_from_facebook = fb_handler.get_posts_from_facebook(1)
+        new_posts_by_topic = filterer.recognize_new_post_with_topic(posts_from_facebook, get_hebrew_word_from_file())
+        self.assertTrue(new_posts_by_topic)
+
+    def test_put_comment(self):
+        fb_handler = FacebookHandler()
+        fb_handler.put_comment()
+        ron = 2
 
 
 if __name__ == '__main__':

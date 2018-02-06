@@ -1,4 +1,5 @@
 POSTS_COUNT = 200
+TOP_RESTS_AMOUNT = 5
 APP_ID = '1705401553076241'
 APP_SECRET_ID = '3594b7152674e912e843ef9209191c91'
 TOKEN_FILE_NAME = 'token_file.txt'
@@ -7,7 +8,7 @@ REACTIONS_LIMIT = 5000
 REACTIONS_DICT = {'LIKE': 0, 'LOVE': 0, 'WOW': 0, 'HAHA': 0, 'SAD': 0, 'ANGRY': 0, 'THANKFUL': 0}
 POST_FIELDS_LIST = 'created_time, message, place, attachments, reactions.limit({})'.format(REACTIONS_LIMIT)
 BASE_URL = '619669744790558/?fields=feed.limit({})'.format(str(POSTS_COUNT))
-PLACE_URL = 'search?type=place&q={}&fields=name,id,location,hours,about'
+PLACE_FIELDS = '?fields=about,hours,picture'
 DAY_RANGE = '.since({}).until({})'
 GOOD_RANK = 'good'
 BAD_RANK = 'bad'

@@ -5,7 +5,7 @@ import pandas as pd
 import json
 
 from conf import BAD_CHARACTERS, POSTS_WITHOUT_RANK_QUERY, ATTACHMENTS, DATA, DESC_TAG, NAME, NO_REST_IN_POST, \
-    CHARS_TO_REMOVE
+    CHARS_TO_REMOVE, PLACE_FIELDS
 from facebook_handler import FacebookHandler
 
 
@@ -13,11 +13,16 @@ class DB_Handler:
     def __init__(self):
         self.fb_handler = FacebookHandler()
         client = MongoClient('localhost', 27017)
-        self.db = client.veganDB
+        self.db = client.veganDBA
+        self.initialize_db()
+
+    def initialize_db(self):
         self.posts_collection = self.db.posts
         self.restaurants_collection = self.db.restaurants
         self.restaurants_data_collection = self.db.restaurants_data
         self.all_restaurants = list(self.restaurants_data_collection.find())
+        if not list(self.restaurants_collection.find()):
+            self.restaurants_collection.insert_one({'restaurants_names': []})
         self.restaurants_doc_id_obj = list(self.restaurants_collection.find())[0]['_id']
         self.all_restaurants_names = list(self.restaurants_collection.find())[0]['restaurants_names']
 
@@ -87,7 +92,7 @@ class DB_Handler:
         place_dict = post['place']
         if place_name not in self.all_restaurants_names:
             try:
-                place_data = self.fb_handler.graph.get_object(post['place']['id'] + "?fields=about,hours")
+                place_data = self.fb_handler.graph.get_object(post['place']['id'] + PLACE_FIELDS)
                 place_dict.update(place_data)
             except Exception as e:
                 print place_dict['name'] + ' -- >' + e.message
@@ -126,10 +131,10 @@ class DB_Handler:
                 tagged_posts.append((place_name, post))
             elif 'place' in post:
                 self.add_place_recommendation(post)
-            else:
-                place_name = self.get_rest_from_post_message(post)
-                if place_name != NO_REST_IN_POST:
-                    tagged_posts.append((place_name, post))
+            # else:
+            #     place_name = self.get_rest_from_post_message(post)
+            #     if place_name != NO_REST_IN_POST:
+            #         tagged_posts.append((place_name, post))
         for (place_name, post) in tagged_posts:
             if place_name in self.all_restaurants_names:
                 self.add_existing_place(post, place_name)
@@ -146,9 +151,12 @@ class DB_Handler:
         print df
 
     def get_top_restaurants_as_json(self, count_from, count_to):
+        data = {}
         top_restaurants_data = list(self.restaurants_data_collection.find())
-        data = [(res['name'], len(res['recs'])) for res in top_restaurants_data]
-        df = pd.DataFrame(data, columns=['name', 'recs']).sort_values('recs', ascending=False).set_index('name')
+        for res in top_restaurants_data:
+            data[res['id']] = {'name': res['name'], 'recs': len(res['recs']), 'loc': res['location']}
+            data[res['id']]['about'] = res['about'][0:100] if 'about' in res else 'no about'
+        df = pd.DataFrame(data).T.sort_values(by=['recs'], ascending=False)
         top_ten_json = df[count_from:count_to].to_json()
         return top_ten_json
 
@@ -203,12 +211,3 @@ class DB_Handler:
                 if synonyms:
                     self.restaurants_data_collection.update_one({'_id': rest['_id']},
                                                                 {"$set": {'synonyms': synonyms}})
-
-    def build_weekly_rank(self):
-        # todo add weekly rank
-        top_restaurants_data = list(self.restaurants_data_collection.find())
-        data = [(res['id'], res['recs']) for res in top_restaurants_data]
-        # for rec in data.values():
-        # self.db.weekly.insert_one()
-        ron = 2
-        # for self.restaurants_data_collection.

@@ -3,7 +3,7 @@ import facebook
 import requests
 from conf import POST_FIELDS_LIST, BASE_URL, POSTS_COUNT, DAY_RANGE, APP_SECRET_ID, APP_ID, TOKEN_FILE_NAME, \
     REACTIONS_DICT
-from utils import get_day_range_unix_time, file_modified_in_last_hour
+from utils import get_day_range_unix_time, file_modified_in_last_hour, get_hebrew_word_from_file
 import json
 
 
